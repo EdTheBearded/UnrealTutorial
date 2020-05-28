@@ -27,7 +27,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	float Reach{ 100.f };
+	float Reach{ 150.f };
 
 	UPhysicsHandleComponent *PhysicsHandle{ nullptr };
 	UInputComponent *InputComponent{ nullptr };
@@ -46,4 +46,16 @@ private:
 	 * @return Return FHitResult with found Actor
 	 */
 	FHitResult GetFirstPhysicsBodyInReach() const;
+
+	/**
+	 * Calculate where the grabbing reach line ends and return its point
+	 * @return Return FVector with coordinates of grab reach end point
+	 */
+	FVector GetPlayerReach() const;
+
+	/**
+	 * Retrieves players viewpoint position
+	 * @return returns FVector with player's viewpoint position
+	 */
+	FVector GetPlayerWorldPos() const;
 };

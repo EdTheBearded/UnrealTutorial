@@ -29,42 +29,25 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FVector PlayerViewPointLocation{};
-	FRotator PlayerViewPointRotation{};
-
-	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(PlayerViewPointLocation, PlayerViewPointRotation);
-
-	FVector LineTraceEnd{ PlayerViewPointLocation + Reach * PlayerViewPointRotation.Vector() };
-
 	if (PhysicsHandle->GetGrabbedComponent())
 	{
-		PhysicsHandle->SetTargetLocation(LineTraceEnd);
+		PhysicsHandle->SetTargetLocation(GetPlayerReach());
 	}
 }
 
 void UGrabber::Grab()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Grabber Pressed"));
-
-	FVector PlayerViewPointLocation{};
-	FRotator PlayerViewPointRotation{};
-
-	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(PlayerViewPointLocation, PlayerViewPointRotation);
-
-	FVector LineTraceEnd{ PlayerViewPointLocation + Reach * PlayerViewPointRotation.Vector() };
-
 	FHitResult HitResult{ GetFirstPhysicsBodyInReach() };
 	UPrimitiveComponent *ComponentToGrab{ HitResult.GetComponent() };
+
 	if (HitResult.GetActor())
 	{
-		PhysicsHandle->GrabComponentAtLocation(ComponentToGrab, NAME_None, LineTraceEnd);
+		PhysicsHandle->GrabComponentAtLocation(ComponentToGrab, NAME_None, GetPlayerReach());
 	}
 }
 
 void UGrabber::Release()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Grabber Released"));
-
 	if (PhysicsHandle->GetGrabbedComponent())
 	{
 		PhysicsHandle->ReleaseComponent();
@@ -99,29 +82,33 @@ void UGrabber::SetupInputComponent()
 // Raycast to find the first Actor with PhysicsBody within reach
 FHitResult UGrabber::GetFirstPhysicsBodyInReach() const
 {
-	FVector PlayerViewPointLocation{};
-	FRotator PlayerViewPointRotation{};
-
-	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(PlayerViewPointLocation, PlayerViewPointRotation);
-
-	FVector LineTraceEnd{ PlayerViewPointLocation + Reach * PlayerViewPointRotation.Vector() };
 	FHitResult Hit{};
 	FCollisionQueryParams TraceParams(FName(TEXT("")), false, GetOwner());
 
 	GetWorld()->LineTraceSingleByObjectType(
 		Hit,
-		PlayerViewPointLocation,
-		LineTraceEnd,
+		GetPlayerWorldPos(),
+		GetPlayerReach(),
 		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
 		TraceParams
 	);
 
-	AActor *ActorHit{ Hit.GetActor() };
-	if (ActorHit)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Hit detected on %s."), *ActorHit->GetName());
-	}
-
 	return Hit;
+}
+// Calculate where the grabbing reach line ends and return its point
+FVector UGrabber::GetPlayerReach() const
+{
+	FVector PlayerViewPointLocation{};
+	FRotator PlayerViewPointRotation{};
+
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(PlayerViewPointLocation, PlayerViewPointRotation);
+
+	return  PlayerViewPointLocation + Reach * PlayerViewPointRotation.Vector();
+}
+
+// Retrieves players viewpoint position
+FVector UGrabber::GetPlayerWorldPos() const
+{
+	return GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
 }
 
