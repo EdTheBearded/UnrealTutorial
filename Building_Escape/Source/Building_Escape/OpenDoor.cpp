@@ -13,8 +13,6 @@ UOpenDoor::UOpenDoor()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
 
@@ -30,8 +28,6 @@ void UOpenDoor::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s has the door component, but no pressure plate set!"), *GetOwner()->GetName());
 	}
-
-	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
 }
 
 // Called every frame
@@ -44,7 +40,7 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 		OpenDoor(DeltaTime);
 		DoorLastOpened = GetWorld()->GetTimeSeconds();
 	}
-	else if (PressurePlate && !PressurePlate->IsOverlappingActor(ActorThatOpens))
+	else
 	{
 		if (GetWorld()->GetTimeSeconds() - DoorLastOpened >= DoorCloseDelay)
 		{
@@ -85,6 +81,7 @@ float UOpenDoor::TotalMassOfActors() const
 
 	TArray<AActor *> OverlappingActors{};
 
+	if (!PressurePlate) { return TotalMass; }
 	PressurePlate->GetOverlappingActors(OverlappingActors);
 
 	for (AActor *Actor : OverlappingActors)
