@@ -80,7 +80,10 @@ DerivedDataCache/*
 
 Content/StarterContent/*
 
+# Ignore Megascans textures
+Content/Materials
+Content/Megascans
+
 VSCode Files
 /.vscode/*
 BuildingEscape.code-workspace
-
